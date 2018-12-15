@@ -1,13 +1,23 @@
-import app from "./app";
-import compression from "compression";
-import helmet from "helmet";
+import dgram from "dgram";
+import { AddressInfo } from "net";
 
-app.use(helmet()); // set well-known security-related HTTP headers
-app.use(compression());
+const server = dgram.createSocket('udp4');
 
-app.disable("x-powered-by");
+server.on('error', (err) => {
+  console.log(`server error:\n${err.stack}`);
+  server.close();
+});
 
-const server = app.listen(3000, () =>
-    console.log("Starting ExpressJS server on Port 3000"));
+server.on('message', (msg, rinfo) => {
+  console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+});
+
+server.on('listening', () => {
+  const address: AddressInfo = <AddressInfo>server.address();
+  console.log(`server listening ${address.address}:${address.port}`);
+});
+
+server.bind(41234);
+// server listening 0.0.0.0:41234
 
 export default server;
